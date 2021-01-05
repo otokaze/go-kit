@@ -1,7 +1,11 @@
+// +build windows
+
 package printcolor
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"syscall"
 )
 
@@ -33,40 +37,50 @@ func init() {
 	}
 }
 
-func (w *windows) Call(s string, i int) {
-	handle, _, _ := w.proc.Call(uintptr(syscall.Stdout), uintptr(i))
+// syscall.Stdout
+func (win *windows) Call(w io.Writer, s string, i int) {
+	handle, _, _ := win.proc.Call(uintptr(win.GetStd(w)), uintptr(i))
 	fmt.Print(s)
-	w.closeHandle.Call(handle)
-	handle, _, _ = w.proc.Call(uintptr(syscall.Stdout), uintptr(fgLightGray2))
-	w.closeHandle.Call(handle)
+	win.closeHandle.Call(handle)
+	handle, _, _ = win.proc.Call(uintptr(win.GetStd(w)), uintptr(fgLightGray2))
+	win.closeHandle.Call(handle)
 }
 
 // Implementation of Windows CMD
-func (w *windows) Red(format string, a ...interface{}) {
-	w.Call(fmt.Sprintf(format, a...), fgRed2)
+func (win *windows) Red(w io.Writer, format string, a ...interface{}) {
+	win.Call(w, fmt.Sprintf(format, a...), fgRed2)
 }
 
-func (w *windows) Cyan(format string, a ...interface{}) {
-	fmt.Println(fgRed2, fgBlack2, fgWhite2)
-	w.Call(fmt.Sprintf(format, a...), fgCyan2)
+func (win *windows) Cyan(w io.Writer, format string, a ...interface{}) {
+	win.Call(w, fmt.Sprintf(format, a...), fgCyan2)
 }
 
-func (w *windows) Blue(format string, a ...interface{}) {
-	w.Call(fmt.Sprintf(format, a...), fgBlue2)
+func (win *windows) Blue(w io.Writer, format string, a ...interface{}) {
+	win.Call(w, fmt.Sprintf(format, a...), fgBlue2)
 }
 
-func (w *windows) White(format string, a ...interface{}) {
-	w.Call(fmt.Sprintf(format, a...), fgWhite2)
+func (win *windows) White(w io.Writer, format string, a ...interface{}) {
+	win.Call(w, fmt.Sprintf(format, a...), fgWhite2)
 }
 
-func (w *windows) Black(format string, a ...interface{}) {
-	w.Call(fmt.Sprintf(format, a...), fgBlack2)
+func (win *windows) Black(w io.Writer, format string, a ...interface{}) {
+	win.Call(w, fmt.Sprintf(format, a...), fgBlack2)
 }
 
-func (w *windows) Green(format string, a ...interface{}) {
-	w.Call(fmt.Sprintf(format, a...), fgGreen2)
+func (win *windows) Green(w io.Writer, format string, a ...interface{}) {
+	win.Call(w, fmt.Sprintf(format, a...), fgGreen2)
 }
 
-func (w *windows) Yellow(format string, a ...interface{}) {
-	w.Call(fmt.Sprintf(format, a...), fgYellow2)
+func (win *windows) Yellow(w io.Writer, format string, a ...interface{}) {
+	win.Call(w, fmt.Sprintf(format, a...), fgYellow2)
+}
+
+func (win *windows) GetStd(w io.Writer) int {
+	var std int
+	if w == os.Stdout {
+		std = int(syscall.Stdout)
+	} else if w == os.Stderr {
+		std = int(syscall.Stderr)
+	}
+	return std
 }

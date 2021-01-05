@@ -2,6 +2,8 @@ package printcolor
 
 import (
 	"fmt"
+	"io"
+	"os"
 )
 
 var print Print
@@ -27,59 +29,67 @@ const (
 )
 
 type Print interface {
-	Red(format string, a ...interface{})
-	Cyan(format string, a ...interface{})
-	Blue(format string, a ...interface{})
-	White(format string, a ...interface{})
-	Black(format string, a ...interface{})
-	Green(format string, a ...interface{})
-	Yellow(format string, a ...interface{})
+	Red(w io.Writer, format string, a ...interface{})
+	Cyan(w io.Writer, format string, a ...interface{})
+	Blue(w io.Writer, format string, a ...interface{})
+	White(w io.Writer, format string, a ...interface{})
+	Black(w io.Writer, format string, a ...interface{})
+	Green(w io.Writer, format string, a ...interface{})
+	Yellow(w io.Writer, format string, a ...interface{})
 }
 
 func init() { print = &linux{} }
 
-func Red(format string, a ...interface{})    { print.Red(format, a...) }
-func Cyan(format string, a ...interface{})   { print.Cyan(format, a...) }
-func Blue(format string, a ...interface{})   { print.Blue(format, a...) }
-func White(format string, a ...interface{})  { print.White(format, a...) }
-func Black(format string, a ...interface{})  { print.Black(format, a...) }
-func Green(format string, a ...interface{})  { print.Green(format, a...) }
-func Yellow(format string, a ...interface{}) { print.Yellow(format, a...) }
+func Red(format string, a ...interface{})    { print.Red(os.Stdout, format, a...) }
+func Cyan(format string, a ...interface{})   { print.Cyan(os.Stdout, format, a...) }
+func Blue(format string, a ...interface{})   { print.Blue(os.Stdout, format, a...) }
+func White(format string, a ...interface{})  { print.White(os.Stdout, format, a...) }
+func Black(format string, a ...interface{})  { print.Black(os.Stdout, format, a...) }
+func Green(format string, a ...interface{})  { print.Green(os.Stdout, format, a...) }
+func Yellow(format string, a ...interface{}) { print.Yellow(os.Stdout, format, a...) }
+
+func Fred(w io.Writer, format string, a ...interface{})    { print.Red(w, format, a...) }
+func Fcyan(w io.Writer, format string, a ...interface{})   { print.Cyan(w, format, a...) }
+func Fblue(w io.Writer, format string, a ...interface{})   { print.Blue(w, format, a...) }
+func Fwhite(w io.Writer, format string, a ...interface{})  { print.White(w, format, a...) }
+func Fblack(w io.Writer, format string, a ...interface{})  { print.Black(w, format, a...) }
+func Fgreen(w io.Writer, format string, a ...interface{})  { print.Green(w, format, a...) }
+func Fyellow(w io.Writer, format string, a ...interface{}) { print.Yellow(w, format, a...) }
 
 type linux struct{}
 
 // Implementation of Linux terminal
-func (*linux) Red(format string, a ...interface{}) {
+func (*linux) Red(w io.Writer, format string, a ...interface{}) {
 	var s = fmt.Sprintf(format, a...)
-	fmt.Printf("\033[1;%dm%s\033[0m", fgRed, s)
+	fmt.Fprintf(w, "\033[1;%dm%s\033[0m", fgRed, s)
 }
 
-func (*linux) Cyan(format string, a ...interface{}) {
+func (*linux) Cyan(w io.Writer, format string, a ...interface{}) {
 	var s = fmt.Sprintf(format, a...)
-	fmt.Printf("\033[1;%dm%s\033[0m", fgCyan, s)
+	fmt.Fprintf(w, "\033[1;%dm%s\033[0m", fgCyan, s)
 }
 
-func (*linux) Blue(format string, a ...interface{}) {
+func (*linux) Blue(w io.Writer, format string, a ...interface{}) {
 	var s = fmt.Sprintf(format, a...)
-	fmt.Printf("\033[1;%dm%s\033[0m", fgBlue, s)
+	fmt.Fprintf(w, "\033[1;%dm%s\033[0m", fgBlue, s)
 }
 
-func (*linux) White(format string, a ...interface{}) {
+func (*linux) White(w io.Writer, format string, a ...interface{}) {
 	var s = fmt.Sprintf(format, a...)
-	fmt.Printf("\033[1;%dm%s\033[0m", fgWhite, s)
+	fmt.Fprintf(w, "\033[1;%dm%s\033[0m", fgWhite, s)
 }
 
-func (*linux) Black(format string, a ...interface{}) {
+func (*linux) Black(w io.Writer, format string, a ...interface{}) {
 	var s = fmt.Sprintf(format, a...)
-	fmt.Printf("\033[1;%dm%s\033[0m", fgBlack, s)
+	fmt.Fprintf(w, "\033[1;%dm%s\033[0m", fgBlack, s)
 }
 
-func (*linux) Green(format string, a ...interface{}) {
+func (*linux) Green(w io.Writer, format string, a ...interface{}) {
 	var s = fmt.Sprintf(format, a...)
-	fmt.Printf("\033[1;%dm%s\033[0m", fgGreen, s)
+	fmt.Fprintf(w, "\033[1;%dm%s\033[0m", fgGreen, s)
 }
 
-func (*linux) Yellow(format string, a ...interface{}) {
+func (*linux) Yellow(w io.Writer, format string, a ...interface{}) {
 	var s = fmt.Sprintf(format, a...)
-	fmt.Printf("\033[1;%dm%s\033[0m", fgYellow, s)
+	fmt.Fprintf(w, "\033[1;%dm%s\033[0m", fgYellow, s)
 }
