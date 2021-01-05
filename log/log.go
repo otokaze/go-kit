@@ -29,5 +29,3 @@ func Info(format string, a ...interface{}) {
 	format = fmt.Sprintf("%s %s %s", infoPrefix, ts, format)
 	fmt.Fprintf(os.Stdout, format, a...)
 }
-
-// func Error(format string, a ...interface{}) {}
