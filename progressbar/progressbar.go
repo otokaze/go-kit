@@ -105,12 +105,7 @@ func (b *Bar) Run() {
 	go func() {
 		defer b.wg.Done()
 		for {
-			b.RLock()
-			if b.stop {
-				println()
-				b.RUnlock()
-				return
-			}
+			b.Lock()
 			percent := float64(b.current) / float64(b.total)
 			if percent > 1 {
 				percent = 1
@@ -121,8 +116,13 @@ func (b *Bar) Run() {
 				str += ">"
 				str += strings.Repeat("-", int(b.size-step)-1)
 			}
-			fmt.Printf("%s [%s]%2.f%% %s\r", b.prefix, str, percent*100, b.suffix)
-			b.RUnlock()
+			fmt.Printf("\r%s [%s]%2.f%% %s", b.prefix, str, percent*100, b.suffix)
+			if b.stop {
+				println()
+				b.Unlock()
+				return
+			}
+			b.Unlock()
 			time.Sleep(b.refresh)
 		}
 	}()
