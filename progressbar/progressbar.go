@@ -122,11 +122,6 @@ func (b *Bar) Run() {
 				str += strings.Repeat("-", int(b.size-step)-1)
 			}
 			fmt.Printf("%s [%s]%2.f%% %s\r", b.prefix, str, percent*100, b.suffix)
-			if b.current > b.total {
-				println()
-				b.RUnlock()
-				return
-			}
 			b.RUnlock()
 			time.Sleep(b.refresh)
 		}
