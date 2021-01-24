@@ -2,6 +2,8 @@ package progressbar
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -68,6 +70,36 @@ func (b *Bar) Set(i int64) {
 	atomic.StoreInt64(&b.current, i)
 }
 
+func (b *Bar) ListenDir(dir string) {
+	go func() {
+		for {
+			b.RLock()
+			if b.stop {
+				b.RUnlock()
+				println()
+				return
+			}
+			b.RUnlock()
+			var dirSzie int64
+			filepath.Walk(dir, func(_ string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+				if !info.IsDir() {
+					dirSzie += info.Size()
+				}
+				return nil
+			})
+			if dirSzie > 0 {
+				b.Lock()
+				b.current = dirSzie
+				b.Unlock()
+			}
+			time.Sleep(b.refresh)
+		}
+	}()
+}
+
 func (b *Bar) Run() {
 	b.wg.Add(1)
 	go func() {
@@ -80,6 +112,9 @@ func (b *Bar) Run() {
 				return
 			}
 			percent := float64(b.current) / float64(b.total)
+			if percent > 1 {
+				percent = 1
+			}
 			step := uint8(float64(b.size) * percent)
 			str := strings.Repeat("=", int(step))
 			if step < b.size {
@@ -87,13 +122,13 @@ func (b *Bar) Run() {
 				str += strings.Repeat("-", int(b.size-step)-1)
 			}
 			fmt.Printf("%s [%s]%2.f%% %s\r", b.prefix, str, percent*100, b.suffix)
-			time.Sleep(b.refresh)
 			if b.current > b.total {
 				println()
 				b.RUnlock()
 				return
 			}
 			b.RUnlock()
+			time.Sleep(b.refresh)
 		}
 	}()
 }
