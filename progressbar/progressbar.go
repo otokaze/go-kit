@@ -17,6 +17,7 @@ type Bar struct {
 	current int64
 	prefix  string
 	suffix  string
+	running bool
 	stop    bool
 	sync.RWMutex
 	wg sync.WaitGroup
@@ -70,10 +71,19 @@ func (b *Bar) Set(i int64) {
 	atomic.StoreInt64(&b.current, i)
 }
 
+func (b *Bar) SetMax(i int64) {
+	atomic.StoreInt64(&b.total, i)
+}
+
 func (b *Bar) ListenDir(dir string) {
 	go func() {
 		for {
 			b.RLock()
+			if !b.running {
+				b.RUnlock()
+				time.Sleep(time.Second)
+				continue
+			}
 			if b.stop {
 				b.RUnlock()
 				println()
@@ -101,6 +111,10 @@ func (b *Bar) ListenDir(dir string) {
 }
 
 func (b *Bar) Run() {
+	if b.running {
+		return
+	}
+	b.running = true
 	b.wg.Add(1)
 	go func() {
 		defer b.wg.Done()
@@ -119,6 +133,7 @@ func (b *Bar) Run() {
 			fmt.Printf("\r%s [%s]%2.f%% %s", b.prefix, str, percent*100, b.suffix)
 			if b.stop {
 				println()
+				b.running = false
 				b.Unlock()
 				return
 			}
@@ -133,4 +148,8 @@ func (b *Bar) Stop() {
 	b.stop = true
 	b.Unlock()
 	b.wg.Wait()
+}
+
+func (b *Bar) IsRunning() bool {
+	return b.running
 }
